@@ -1,0 +1,4 @@
+bepinex.monomod.loader.dll
+bepinex.multifolderloader.dll
+dragons.publicdragon.dll
+hooks-assembly-csharp.dll
