@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Rain World</title>
+<style>html,body,#game,canvas{margin:0;width:100%;height:100%;background:#111}body{overflow:hidden}canvas{display:block;outline:none}</style>
+</head>
+<body>
+<div id="game"><canvas id="unity-canvas" tabindex="0"></canvas></div>
+<script>
+    const originalFetch = window.fetch;
+window.fetch = function(...args) {
+    const url = args[0];
+    if (typeof url === 'string' && url.match(/\.(mp3|wav|ogg|aac|m4a)/i)) {
+        // Intercept audio requests and fake a successful but empty response
+        return Promise.resolve(new Response(new Blob(), { 
+            status: 200, 
+            statusText: 'OK', 
+            headers: { 'Content-Type': 'audio/mpeg' } 
+        }));
+    }
+    return originalFetch.apply(this, args);
+};
+
+// Also patch XMLHttpRequest just in case Unity is using the older web request style
+const originalXHR = XMLHttpRequest.prototype.open;
+
+XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    if (typeof url === "string" &&
+        /\.(mp3|wav|ogg|aac|m4a)(?:[?#]|$)/i.test(url)) {
+        url = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    }
+
+    return originalXHR.call(this, method, url, ...rest);
+};
+
+const originalAlert = window.alert;
+
+window.alert = function (message) {
+    if (typeof message === "string" && /decodeAudioData/i.test(message)) {
+        console.log("Blocked alert for audio request:", message);
+        return;
+    }
+
+    return originalAlert.apply(this, arguments);
+};
+</script>
+<script type="application/json" id="stellite-unity-build">{"loader":"Build/WebGLUnity6Build.loader.js","config":{"dataUrl":"Build/WebGLUnity6Build.data","frameworkUrl":"Build/WebGLUnity6Build.framework.js","codeUrl":"Build/WebGLUnity6Build.wasm","streamingAssetsUrl":"StreamingAssets","companyName":"Videocult","productName":"Rain World","productVersion":"1.11.8"}}</script>
+<script src="ul.js"></script>
+</body>
+</html>
